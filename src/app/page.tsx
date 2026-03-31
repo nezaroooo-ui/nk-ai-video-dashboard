@@ -1,329 +1,291 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { 
   Users, 
-  Mail, 
+  Search, 
+  Target, 
   MessageSquare, 
-  TrendingUp,
-  ArrowUpRight,
-  ArrowDownRight,
-  Target,
+  CheckCircle, 
+  Send, 
+  BarChart3,
+  Settings,
+  Activity,
   Clock,
-  CheckCircle2,
-  AlertCircle
+  Play,
+  Pause,
+  RefreshCw,
+  ExternalLink,
+  Mail,
+  TrendingUp,
+  Zap,
+  Eye
 } from 'lucide-react';
 import { DashboardLayout } from '@/components/dashboard/layout';
-import { KPICard } from '@/components/dashboard/kpi-card';
-import { cn, formatPercent, getStatusColor, formatDate } from '@/lib/utils';
+import { cn, formatDate } from '@/lib/utils';
 
-// Mock data for demonstration
-const kpiData = {
-  leadsAdded: 15,
-  leadsAddedChange: 12,
-  leadsEnriched: 12,
-  leadsEnrichedChange: 8,
-  messagesSent: 8,
-  messagesSentChange: 14,
-  replies: 2,
-  repliesChange: -33,
-  positiveReplies: 1,
-  meetingsRequested: 0,
-  replyRate: 25,
-  replyRateChange: 5,
+const schedule = [
+  { time: '8:00 AM', agent: 'Kareem', task: 'Morning brief & daily planning', status: 'completed' },
+  { time: '8:15 AM', agent: 'Mazen', task: 'Research cycle - Find new leads', status: 'pending' },
+  { time: '9:00 AM', agent: 'Saleem', task: 'Technical health check', status: 'completed' },
+  { time: '11:00 AM', agent: 'Layan', task: 'Enrich leads with insights', status: 'pending' },
+  { time: '12:00 PM', agent: 'Yara', task: 'Messaging strategy', status: 'pending' },
+  { time: '1:00 PM', agent: 'Sara', task: 'Write outreach messages', status: 'pending' },
+  { time: '3:00 PM', agent: 'Hala', task: 'QA review', status: 'pending' },
+  { time: '4:30 PM', agent: 'Adham', task: 'Send approved messages', status: 'pending' },
+  { time: '5:00 PM', agent: 'Reem', task: 'Update pipeline', status: 'pending' },
+  { time: '5:30 PM', agent: 'Hani', task: 'Handle replies', status: 'pending' },
+  { time: '6:00 PM', agent: 'Nader', task: 'Dashboard refresh', status: 'pending' },
+  { time: '7:00 PM', agent: 'Kareem', task: 'Collect final metrics', status: 'pending' },
+  { time: '7:30 PM', agent: 'Kareem', task: 'Send evening report', status: 'pending' },
+];
+
+const founderInfo = {
+  name: 'Nezar Kamel',
+  website: 'https://nezarkamel.com/',
+  segments: ['Beauty', 'Perfume', 'eCommerce', 'Luxury'],
+  platforms: ['Instagram', 'TikTok', 'Threads'],
+  service: 'AI Video Production',
 };
 
-const topOpportunities = [
-  {
-    id: '1',
-    company: 'Luxe Beauty Co',
-    segment: 'Perfume/Beauty',
-    tier: 'A',
-    score: 9.2,
-    status: 'interested',
-    nextAction: 'Send samples',
-    value: '$3,000',
-  },
-  {
-    id: '2',
-    company: 'PropertyTech',
-    segment: 'Real Estate',
-    tier: 'A',
-    score: 8.5,
-    status: 'meeting_requested',
-    nextAction: 'Escalate to founder',
-    value: '$5,000',
-  },
-  {
-    id: '3',
-    company: 'ShopMax',
-    segment: 'eCommerce',
-    tier: 'B',
-    score: 8.1,
-    status: 'need_details',
-    nextAction: 'Respond with pricing',
-    value: '$2,500',
-  },
-];
-
-const recentActivity = [
-  {
-    id: '1',
-    agent: 'Mazen',
-    action: 'completed research',
-    description: '5 new leads added',
-    timestamp: '2 hours ago',
-  },
-  {
-    id: '2',
-    agent: 'Layan',
-    action: 'completed enrichment',
-    description: '4 leads enriched',
-    timestamp: '1 hour ago',
-  },
-  {
-    id: '3',
-    agent: 'Sara',
-    action: 'completed messaging',
-    description: '12 message drafts ready',
-    timestamp: '45 min ago',
-  },
-  {
-    id: '4',
-    agent: 'Hala',
-    action: 'completed QA',
-    description: '10 approved, 2 revision',
-    timestamp: '30 min ago',
-  },
-  {
-    id: '5',
-    agent: 'Adham',
-    action: 'completed sending',
-    description: '8 messages sent',
-    timestamp: '15 min ago',
-  },
-];
-
-const pipelineStages = [
-  { name: 'New', count: 5, color: 'bg-gray-500' },
-  { name: 'Researched', count: 3, color: 'bg-blue-500' },
-  { name: 'Enriched', count: 8, color: 'bg-indigo-500' },
-  { name: 'Ready for Messaging', count: 12, color: 'bg-purple-500' },
-  { name: 'Ready for QA', count: 4, color: 'bg-violet-500' },
-  { name: 'Approved', count: 10, color: 'bg-teal-500' },
-  { name: 'Sent', count: 45, color: 'bg-cyan-500' },
-  { name: 'Replied', count: 8, color: 'bg-amber-500' },
-  { name: 'Interested', count: 5, color: 'bg-green-500' },
-];
-
 export default function DashboardPage() {
+  const [stats, setStats] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [lastUpdate, setLastUpdate] = useState<string>('');
+
+  const fetchStats = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch('/api/dashboard/stats');
+      const data = await res.json();
+      setStats(data);
+      setLastUpdate(new Date().toLocaleTimeString());
+    } catch (error) {
+      console.error('Error fetching stats:', error);
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    fetchStats();
+    const interval = setInterval(fetchStats, 30000); // Refresh every 30s
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <DashboardLayout>
-      <div className="space-y-8">
-        {/* Page Header */}
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Executive Overview</h1>
-          <p className="text-gray-500 mt-1">Daily performance and system status</p>
+      <div className="space-y-6">
+        {/* Header with Founder Info */}
+        <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl p-6 text-white">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold">Welcome back, Nezar</h1>
+              <p className="text-blue-100 mt-1">AI Video Client Acquisition System</p>
+              <div className="flex gap-4 mt-3">
+                <a href={founderInfo.website} target="_blank" rel="noopener noreferrer" 
+                   className="flex items-center gap-1 text-sm text-blue-100 hover:text-white">
+                  <ExternalLink className="w-4 h-4" /> Website
+                </a>
+                <span className="text-blue-200">|</span>
+                <span className="text-sm text-blue-100">Segments: {founderInfo.segments.join(', ')}</span>
+              </div>
+            </div>
+            <button 
+              onClick={fetchStats}
+              disabled={loading}
+              className="flex items-center gap-2 px-4 py-2 bg-white/20 rounded-lg hover:bg-white/30 transition-colors"
+            >
+              <RefreshCw className={cn('w-4 h-4', loading && 'animate-spin')} />
+              Refresh
+            </button>
+          </div>
         </div>
 
-        {/* KPI Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <KPICard
-            title="Leads Added"
-            value={kpiData.leadsAdded}
-            change={kpiData.leadsAddedChange}
-            changeLabel="vs yesterday"
-            icon={Users}
-            variant="default"
-          />
-          <KPICard
-            title="Leads Enriched"
-            value={kpiData.leadsEnriched}
-            change={kpiData.leadsEnrichedChange}
-            changeLabel="vs yesterday"
-            icon={Target}
-            variant="default"
-          />
-          <KPICard
-            title="Messages Sent"
-            value={kpiData.messagesSent}
-            change={kpiData.messagesSentChange}
-            changeLabel="vs yesterday"
-            icon={Mail}
-            variant="success"
-          />
-          <KPICard
-            title="Replies"
-            value={kpiData.replies}
-            change={kpiData.repliesChange}
-            changeLabel="vs yesterday"
-            icon={MessageSquare}
-            variant={kpiData.repliesChange >= 0 ? 'success' : 'danger'}
-          />
-        </div>
+        {/* Stats Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-semibold text-gray-600">Total Leads</p>
+                <p className="text-3xl font-bold text-gray-900">{stats?.stats?.totalLeads || 0}</p>
+              </div>
+              <div className="p-3 bg-blue-100 rounded-lg">
+                <Users className="w-6 h-6 text-blue-600" />
+              </div>
+            </div>
+            <p className="text-xs text-gray-500 mt-2 font-medium">From Google Sheets</p>
+          </div>
 
-        {/* Secondary Metrics */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-500">Reply Rate</p>
-                <p className="mt-2 text-2xl font-semibold text-gray-900">
-                  {formatPercent(kpiData.replyRate)}
-                </p>
+                <p className="text-sm font-semibold text-gray-600">Messages Sent</p>
+                <p className="text-3xl font-bold text-gray-900">{stats?.stats?.pipeline?.sent || 0}</p>
               </div>
-              <div className={cn(
-                'flex items-center gap-1 text-sm font-medium',
-                kpiData.replyRateChange >= 0 ? 'text-green-600' : 'text-red-600'
-              )}>
-                {kpiData.replyRateChange >= 0 ? (
-                  <ArrowUpRight className="w-4 h-4" />
-                ) : (
-                  <ArrowDownRight className="w-4 h-4" />
-                )}
-                {Math.abs(kpiData.replyRateChange)}%
+              <div className="p-3 bg-green-100 rounded-lg">
+                <Send className="w-6 h-6 text-green-600" />
               </div>
             </div>
+            <p className="text-xs text-gray-500 mt-2 font-medium">This campaign</p>
           </div>
-          
-          <div className="bg-white rounded-xl border border-gray-200 p-6">
+
+          <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-500">Positive Replies</p>
-                <p className="mt-2 text-2xl font-semibold text-gray-900">
-                  {kpiData.positiveReplies}
-                </p>
+                <p className="text-sm font-semibold text-gray-600">Replies</p>
+                <p className="text-3xl font-bold text-gray-900">{stats?.stats?.pipeline?.replied || 0}</p>
               </div>
-              <CheckCircle2 className="w-8 h-8 text-green-500" />
+              <div className="p-3 bg-purple-100 rounded-lg">
+                <Mail className="w-6 h-6 text-purple-600" />
+              </div>
             </div>
+            <p className="text-xs text-gray-500 mt-2 font-medium">Response rate: {stats?.stats?.totalLeads ? ((stats.stats.pipeline.replied / stats.stats.totalLeads) * 100).toFixed(1) : 0}%</p>
           </div>
-          
-          <div className="bg-white rounded-xl border border-gray-200 p-6">
+
+          <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-500">Meetings Requested</p>
-                <p className="mt-2 text-2xl font-semibold text-gray-900">
-                  {kpiData.meetingsRequested}
-                </p>
+                <p className="text-sm font-semibold text-gray-600">Interested</p>
+                <p className="text-3xl font-bold text-gray-900">{stats?.stats?.pipeline?.interested || 0}</p>
               </div>
-              <Clock className="w-8 h-8 text-blue-500" />
+              <div className="p-3 bg-amber-100 rounded-lg">
+                <TrendingUp className="w-6 h-6 text-amber-600" />
+              </div>
             </div>
+            <p className="text-xs text-gray-500 mt-2 font-medium">Hot leads</p>
           </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Top Opportunities */}
+          {/* Today's Schedule */}
           <div className="bg-white rounded-xl border border-gray-200">
-            <div className="px-6 py-4 border-b border-gray-200">
-              <h2 className="text-lg font-semibold text-gray-900">Top Opportunities</h2>
+            <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-gray-900">Today's Schedule</h2>
+              <span className="text-sm text-gray-500">{new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}</span>
             </div>
-            <div className="divide-y divide-gray-200">
-              {topOpportunities.map((opp) => (
-                <div key={opp.id} className="px-6 py-4">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium text-gray-900">{opp.company}</span>
-                        <span className={cn(
-                          'px-2 py-0.5 text-xs font-medium rounded-full border',
-                          opp.tier === 'A' ? 'bg-red-100 text-red-700 border-red-200' :
-                          opp.tier === 'B' ? 'bg-yellow-100 text-yellow-700 border-yellow-200' :
-                          'bg-gray-100 text-gray-700 border-gray-200'
-                        )}>
-                          Tier {opp.tier}
-                        </span>
-                      </div>
-                      <p className="text-sm text-gray-500 mt-1">{opp.segment}</p>
-                      <div className="flex items-center gap-4 mt-2">
-                        <span className={cn('px-2 py-1 text-xs font-medium rounded-full', getStatusColor(opp.status))}>
-                          {opp.status.replace('_', ' ')}
-                        </span>
-                        <span className="text-sm text-gray-600">Score: {opp.score}</span>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <span className="text-lg font-semibold text-gray-900">{opp.value}</span>
-                      <p className="text-sm text-gray-500 mt-1">{opp.nextAction}</p>
+            <div className="divide-y divide-gray-200 max-h-96 overflow-y-auto">
+              {schedule.map((item, index) => (
+                <div key={index} className="px-6 py-3 flex items-center justify-between hover:bg-gray-50">
+                  <div className="flex items-center gap-3">
+                    <span className={cn(
+                      'w-2 h-2 rounded-full',
+                      item.status === 'completed' ? 'bg-green-500' : 
+                      item.status === 'running' ? 'bg-blue-500 animate-pulse' : 'bg-gray-300'
+                    )} />
+                    <div>
+                      <p className="text-sm font-medium text-gray-900">{item.task}</p>
+                      <p className="text-xs text-gray-500">{item.agent}</p>
                     </div>
                   </div>
+                  <span className="text-sm text-gray-400">{item.time}</span>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Recent Activity */}
-          <div className="bg-white rounded-xl border border-gray-200">
-            <div className="px-6 py-4 border-b border-gray-200">
-              <h2 className="text-lg font-semibold text-gray-900">Recent Activity</h2>
-            </div>
-            <div className="divide-y divide-gray-200">
-              {recentActivity.map((activity) => (
-                <div key={activity.id} className="px-6 py-4">
-                  <div className="flex items-start gap-4">
-                    <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
-                      <span className="text-xs font-medium text-blue-700">
-                        {activity.agent.charAt(0)}
-                      </span>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900">
-                        {activity.agent} {activity.action}
-                      </p>
-                      <p className="text-sm text-gray-500">{activity.description}</p>
-                    </div>
-                    <span className="text-xs text-gray-400 whitespace-nowrap">
-                      {activity.timestamp}
-                    </span>
-                  </div>
+          {/* Quick Actions */}
+          <div className="space-y-6">
+            {/* Start Research Task */}
+            <div className="bg-white rounded-xl border border-gray-200 p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="p-2 bg-blue-100 rounded-lg">
+                  <Zap className="w-5 h-5 text-blue-600" />
                 </div>
-              ))}
+                <div>
+                  <h3 className="font-semibold text-gray-900">Start Research Task</h3>
+                  <p className="text-sm text-gray-500">Find Saudi eCommerce stores on Salessa</p>
+                </div>
+              </div>
+              <div className="bg-gray-50 rounded-lg p-4 mb-4">
+                <p className="text-sm text-gray-600">
+                  <strong>Target:</strong> Online stores in Saudi Arabia using سلة (Salessa) platform
+                </p>
+                <p className="text-sm text-gray-600 mt-2">
+                  <strong>Segments:</strong> Beauty, Perfume, Fashion, Electronics
+                </p>
+              </div>
+              <button className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium">
+                <Search className="w-4 h-4" />
+                Start Mazen Research
+              </button>
             </div>
-          </div>
-        </div>
 
-        {/* Pipeline Visual */}
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-6">Pipeline Overview</h2>
-          <div className="flex items-end gap-2 h-32">
-            {pipelineStages.map((stage, index) => (
-              <div key={stage.name} className="flex-1 flex flex-col items-center">
-                <div 
-                  className={cn('w-full rounded-t-lg', stage.color)}
-                  style={{ height: `${(stage.count / 50) * 100}%` }}
-                />
-                <span className="text-xs text-gray-500 mt-2 text-center truncate w-full">
-                  {stage.name}
+            {/* Connection Status */}
+            <div className="bg-white rounded-xl border border-gray-200 p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-semibold text-gray-900">System Status</h3>
+                <span className={cn(
+                  'px-2 py-1 text-xs font-medium rounded-full',
+                  stats?.connected ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                )}>
+                  {stats?.connected ? 'Connected' : 'Disconnected'}
                 </span>
-                <span className="text-sm font-medium text-gray-700">{stage.count}</span>
               </div>
-            ))}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-gray-700 font-medium">Google Sheets</span>
+                  <span className={stats?.connected ? 'text-green-600 font-medium' : 'text-gray-400 font-medium'}><span className={cn('inline-block w-2 h-2 rounded-full mr-1', stats?.connected ? 'bg-green-500' : 'bg-gray-300')}></span>{stats?.connected ? 'Active' : 'Inactive'}</span>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-gray-700 font-medium">Last Update</span>
+                  <span className="text-gray-900 font-medium">{lastUpdate || 'Just now'}</span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* System Status */}
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-gray-900">System Status</h2>
-            <span className="flex items-center gap-2 text-sm text-green-600">
-              <CheckCircle2 className="w-4 h-4" />
-              All systems operational
-            </span>
+        {/* Recent Leads from Sheet */}
+        <div className="bg-white rounded-xl border border-gray-200">
+          <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+            <h2 className="text-lg font-semibold text-gray-900">Recent Leads</h2>
+            <a href="https://docs.google.com/spreadsheets/d/1IMyPQyWYFD_7a3CtF340pu0LwV-TCU5hXCa8mii7JYE" 
+               target="_blank" 
+               className="text-sm text-blue-600 hover:text-blue-700 flex items-center gap-1">
+              <ExternalLink className="w-4 h-4" /> Open Sheet
+            </a>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
-            {[
-              { name: 'Google Sheets', status: 'Healthy', latency: '120ms' },
-              { name: 'Gmail API', status: 'Healthy', latency: '45ms' },
-              { name: 'Telegram Bot', status: 'Healthy', latency: '30ms' },
-              { name: 'Database', status: 'Healthy', latency: '25ms' },
-            ].map((system) => (
-              <div key={system.name} className="p-3 bg-gray-50 rounded-lg">
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-green-500 rounded-full" />
-                  <span className="text-sm font-medium text-gray-700">{system.name}</span>
-                </div>
-                <p className="text-xs text-gray-500 mt-1">{system.latency}</p>
-              </div>
-            ))}
-          </div>
+          {stats?.leads?.length > 0 ? (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Company</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Industry</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Country</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Segment</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tier</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {stats.leads.map((lead: any, i: number) => (
+                    <tr key={i} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 text-sm font-medium text-gray-900">{lead.company_name || '-'}</td>
+                      <td className="px-6 py-4 text-sm text-gray-500">{lead.industry || '-'}</td>
+                      <td className="px-6 py-4 text-sm text-gray-500">{lead.country || '-'}</td>
+                      <td className="px-6 py-4 text-sm text-gray-500">{lead.segment || '-'}</td>
+                      <td className="px-6 py-4">
+                        <span className={cn(
+                          'px-2 py-1 text-xs font-medium rounded-full',
+                          lead.initial_tier === 'A' ? 'bg-red-100 text-red-700' :
+                          lead.initial_tier === 'B' ? 'bg-yellow-100 text-yellow-700' :
+                          'bg-gray-100 text-gray-700'
+                        )}>
+                          Tier {lead.initial_tier || '-'}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div className="px-6 py-12 text-center">
+              <Users className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+              <p className="text-gray-500">No leads yet</p>
+              <p className="text-sm text-gray-400">Start the research task to find leads</p>
+            </div>
+          )}
         </div>
       </div>
     </DashboardLayout>
