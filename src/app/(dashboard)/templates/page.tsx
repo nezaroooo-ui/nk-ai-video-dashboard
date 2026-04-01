@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { DashboardLayout } from '@/components/dashboard/layout';
+import { DashboardLayout, designTokens } from '@/components/dashboard/layout';
 import { 
   Mail, 
   Copy, 
@@ -13,48 +13,51 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
+const t = designTokens;
+const FORCE_DARK = true;
+
 const segments = [
-  { id: 'ecommerce', name: 'eCommerce', icon: '🛒' },
-  { id: 'beauty', name: 'Beauty & Perfume', icon: '✨' },
-  { id: 'fashion', name: 'Fashion', icon: '👗' },
-  { id: 'electronics', name: 'Electronics', icon: '📱' },
+  { id: 'ecommerce', name: 'تجارة إلكترونية', icon: '🛒' },
+  { id: 'beauty', name: 'جمال وعطور', icon: '✨' },
+  { id: 'fashion', name: 'أزياء', icon: '👗' },
+  { id: 'electronics', name: 'إلكترونيات', icon: '📱' },
 ];
 
 const emailTemplates = {
   beauty: {
-    subject: '_question about your brand',
-    opening: `Hi {{name}},
+    subject: 'سؤال حول علامتك التجارية',
+    opening: `أهلاً {{name}}،
 
-I came across ${'{company}'} and loved what you're doing with your brand presence.`,
-    body: `Your products deserve to be seen in the best light. Most beauty brands we work with are sitting on a goldmine of visual content they don't even know exists.
+صادفت متجرك {company} وأعجبتني العلامة التجارية التي تبنيها.`,
+    body: `تستحق منتجاتك أن تُعرض بأفضل شكل. معظم العلامات التجارية التي نعمل معها لديها محتوى بصري ثمين لا تعرف حتى أنه موجود.
 
-Here's what I noticed:
-- Your products are premium quality
-- But your current visuals might not be converting as well as they could
+لاحظت أن:
+- منتجاتك ذات جودة عالية
+- لكن صورك الحالية قد لا تحقق التحويلات بالشكل المطلوب
 
-We've helped similar brands in Saudi Arabia increase their engagement by 3-5x with AI-powered video content that's actually affordable.
+ساعدنا علامات تجارية مشابهة في السعودية على زيادة تفاعلها بنسبة 3-5 أضعاف باستخدام محتوى الفيديو بالذكاء الاصطناعي بأسعار معقولة.
 
-Would you be open to a quick 5-minute call to see some examples specific to your brand?`,
-    cta: 'Book a quick demo',
+هل أنت مستعد لمكالمة سريعة لمدة 5 دقائق لرؤية أمثلة خاصة بعلامتك التجارية؟`,
+    cta: 'احجز عرضاً سريعاً',
   },
   ecommerce: {
-    subject: '_quick question about {{company}}',
-    opening: `Hi {{name}},
+    subject: 'سؤال سريع حول {{company}}',
+    opening: `أهلاً {{name}}،
 
-I was browsing your store and noticed some great products.`,
-    body: `Your product lineup is strong, but here's what I see holding most eCommerce brands back:
+تصفحت متجرك ولاحظت منتجات رائعة.`,
+    body: `مجموعتك قوية، لكن هذا الذي أراه يوقف معظم متاجر التجارة الإلكترونية:
 
-Static images only get you so far. Your competitors are using video to showcase products in ways that stop the scroll and drive conversions.
+الصور الثابتة لا تأخذك بعيداً. منافسيك يستخدمون الفيديو لعرض المنتجات بطرق توقف المستخدم وتدفعه للشراء.
 
-We've helped stores like yours:
-- Increase ROAS by 40-60%
-- Reduce content production costs by 70%
-- Create ads that actually convert
+ساعدنا متاجر مثلك:
+- زيادة العائد على الإعلان بنسبة 40-60%
+- تقليل تكاليف إنتاج المحتوى بنسبة 70%
+- إنشاء إعلانات تحقق مبيعات حقيقية
 
-The best part? You don't need a production team.
+أفضل جزء؟ لست بحاجة لفريق إنتاج.
 
-Want to see what's possible for ${'{company}'}?`,
-    cta: 'See examples',
+هل تريد أن ترى ما ممكن لمتجرك؟`,
+    cta: 'شاهد الأمثلة',
   },
 };
 
@@ -87,15 +90,15 @@ ${preview.cta}`;
   };
 
   const generatedEmail = `
-Subject: ${preview.subject.replace('{{name}}', customize.contactName || '[Name]').replace('{{company}}', customize.companyName || '[Company]')}
+الموضوع: ${preview.subject.replace('{{name}}', customize.contactName || '[الاسم]').replace('{{company}}', customize.companyName || '[الشركة]')}
 
-${preview.opening.replace('{{name}}', customize.contactName || '[Name]').replace('{company}', customize.companyName || '[Company]')}
+${preview.opening.replace('{{name}}', customize.contactName || '[الاسم]').replace('{company}', customize.companyName || '[الشركة]')}
 
-${preview.body.replace('{company}', customize.companyName || '[Company]')}
+${preview.body.replace('{company}', customize.companyName || '[الشركة]')}
 
-Best regards,
-Nezar Kamel
-${'---'}
+مع التحية،
+نزار كامل
+---
 ${preview.cta}
 `.trim();
 
@@ -105,12 +108,16 @@ ${preview.cta}
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Email Templates</h1>
-            <p className="text-gray-500 mt-1">Create and customize outreach templates for each segment</p>
+            <h1 className={cn("text-2xl font-bold", t.textPrimary)}>
+              قوالب البريد الإلكتروني
+            </h1>
+            <p className={cn("mt-1", t.textMuted)}>
+              أنشئ وتخصيص قوالب التواصل لكل قطاع
+            </p>
           </div>
-          <button className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+          <button className={cn("flex items-center gap-2 px-4 py-2 rounded-lg", t.accentBg, "text-white", t.accentHover)}>
             <Send className="w-4 h-4" />
-            Send Test Email
+            إرسال بريد تجريبي
           </button>
         </div>
 
@@ -118,10 +125,10 @@ ${preview.cta}
           {/* Left: Segment Selection & Customization */}
           <div className="space-y-6">
             {/* Segment Selector */}
-            <div className="bg-white rounded-xl border border-gray-200 p-6">
-              <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
+            <div className={cn(t.bgCard, "rounded-xl border", t.borderDefault, "p-6")}>
+              <h3 className={cn("font-semibold mb-4 flex items-center gap-2", t.textPrimary)}>
                 <Palette className="w-4 h-4" />
-                Select Segment
+                اختر القطاع
               </h3>
               <div className="space-y-2">
                 {segments.map((segment) => (
@@ -131,8 +138,8 @@ ${preview.cta}
                     className={cn(
                       'w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-colors',
                       selectedSegment === segment.id
-                        ? 'bg-blue-50 border-2 border-blue-500 text-blue-700'
-                        : 'bg-gray-50 border-2 border-transparent hover:bg-gray-100'
+                        ? cn(t.accentBg, 'text-white border-2 border-blue-500')
+                        : cn(t.bgTertiary, 'border-2 border-transparent hover:bg-gray-700', t.textSecondary)
                     )}
                   >
                     <span className="text-xl">{segment.icon}</span>
@@ -143,46 +150,52 @@ ${preview.cta}
             </div>
 
             {/* Customization */}
-            <div className="bg-white rounded-xl border border-gray-200 p-6">
-              <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
+            <div className={cn(t.bgCard, "rounded-xl border", t.borderDefault, "p-6")}>
+              <h3 className={cn("font-semibold mb-4 flex items-center gap-2", t.textPrimary)}>
                 <Sparkles className="w-4 h-4" />
-                Customize
+                تخصيص
               </h3>
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Company Name
+                  <label className={cn("block text-sm font-medium mb-1", t.textSecondary)}>
+                    اسم الشركة
                   </label>
                   <input
                     type="text"
                     value={customize.companyName}
                     onChange={(e) => setCustomize({...customize, companyName: e.target.value})}
-                    placeholder="e.g., Luxe Beauty"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="مثال: حياة بيوتي"
+                    className={cn("w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500",
+                      t.inputBg, t.inputBorder, t.inputText, t.inputPlaceholder
+                    )}
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Contact Name
+                  <label className={cn("block text-sm font-medium mb-1", t.textSecondary)}>
+                    اسم جهة الاتصال
                   </label>
                   <input
                     type="text"
                     value={customize.contactName}
                     onChange={(e) => setCustomize({...customize, contactName: e.target.value})}
-                    placeholder="e.g., Ahmed"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="مثال: أحمد"
+                    className={cn("w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500",
+                      t.inputBg, t.inputBorder, t.inputText, t.inputPlaceholder
+                    )}
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Personalization Hook
+                  <label className={cn("block text-sm font-medium mb-1", t.textSecondary)}>
+                    نقطة تخصيص
                   </label>
                   <textarea
                     value={customize.personalization}
                     onChange={(e) => setCustomize({...customize, personalization: e.target.value})}
-                    placeholder="Add a specific observation about their brand..."
+                    placeholder="أضف ملاحظة محددة عن علامتهم التجارية..."
                     rows={3}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className={cn("w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500",
+                      t.inputBg, t.inputBorder, t.inputText, t.inputPlaceholder
+                    )}
                   />
                 </div>
               </div>
@@ -191,53 +204,57 @@ ${preview.cta}
 
           {/* Right: Email Preview */}
           <div className="lg:col-span-2">
-            <div className="bg-white rounded-xl border border-gray-200">
-              <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-                <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+            <div className={cn(t.bgCard, "rounded-xl border", t.borderDefault)}>
+              <div className={cn("px-6 py-4 border-b flex items-center justify-between", t.borderDefault)}>
+                <h3 className={cn("font-semibold flex items-center gap-2", t.textPrimary)}>
                   <Mail className="w-4 h-4" />
-                  Email Preview
+                  معاينة البريد
                 </h3>
                 <button
                   onClick={copyToClipboard}
-                  className="flex items-center gap-1 px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+                  className={cn("flex items-center gap-1 px-3 py-1.5 text-sm rounded-lg transition-colors",
+                    t.hover, t.textMuted
+                  )}
                 >
-                  {copied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
-                  {copied ? 'Copied!' : 'Copy'}
+                  {copied ? <Check className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4" />}
+                  {copied ? 'تم النسخ!' : 'نسخ'}
                 </button>
               </div>
               
               <div className="p-6">
                 {/* Subject */}
                 <div className="mb-6">
-                  <label className="block text-sm font-medium text-gray-500 mb-1">Subject</label>
-                  <p className="text-gray-900 font-medium">
-                    {preview.subject.replace('{{name}}', customize.contactName || '[Name]').replace('{{company}}', customize.companyName || '[Company]')}
+                  <label className={cn("block text-sm font-medium mb-1", t.textMuted)}>الموضوع</label>
+                  <p className={cn("font-medium", t.textPrimary)}>
+                    {preview.subject.replace('{{name}}', customize.contactName || '[الاسم]').replace('{{company}}', customize.companyName || '[الشركة]')}
                   </p>
                 </div>
 
                 {/* Email Body */}
-                <div className="bg-gray-50 rounded-lg p-6">
-                  <pre className="whitespace-pre-wrap text-sm text-gray-800 font-sans">
+                <div className={cn("rounded-lg p-6", t.bgTertiary)}>
+                  <pre className={cn("whitespace-pre-wrap text-sm font-sans", t.textSecondary)}>
 {generatedEmail}
                   </pre>
                 </div>
 
                 {/* CTA */}
-                <div className="mt-6 pt-4 border-t border-gray-200">
-                  <span className="text-sm text-gray-500">CTA: </span>
-                  <span className="text-blue-600 font-medium">{preview.cta}</span>
+                <div className="mt-6 pt-4 border-t flex items-center gap-2">
+                  <span className={cn("text-sm", t.textMuted)}>الـ CTA: </span>
+                  <span className="text-blue-400 font-medium">{preview.cta}</span>
                 </div>
               </div>
 
               {/* Actions */}
-              <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex gap-3">
-                <button className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
+              <div className={cn("px-6 py-4 border-t flex gap-3", t.borderDefault, t.bgTertiary)}>
+                <button className={cn("flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-lg border",
+                  t.bgSecondary, t.borderDefault, t.textSecondary, t.hover
+                )}>
                   <MessageSquare className="w-4 h-4" />
-                  Edit Template
+                  تعديل القالب
                 </button>
-                <button className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                <button className={cn("flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-lg", t.accentBg, "text-white", t.accentHover)}>
                   <Send className="w-4 h-4" />
-                  Save & Use
+                  حفظ واستخدام
                 </button>
               </div>
             </div>

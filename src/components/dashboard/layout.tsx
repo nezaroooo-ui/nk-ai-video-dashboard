@@ -1,6 +1,5 @@
 'use client';
 
-import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { 
@@ -42,8 +41,51 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-// Force dark mode
+// Force dark mode - COMPREHENSIVE READABILITY FIX
 const FORCE_DARK = true;
+
+// Design Tokens - High Contrast Dark Mode
+const tokens = {
+  // Backgrounds
+  bgPrimary: 'bg-gray-950',
+  bgSecondary: 'bg-gray-900',
+  bgTertiary: 'bg-gray-800',
+  bgCard: 'bg-gray-900',
+  
+  // Borders
+  borderDefault: 'border-gray-800',
+  borderHover: 'border-gray-700',
+  borderActive: 'border-blue-500',
+  
+  // Text - High Contrast
+  textPrimary: 'text-white',
+  textSecondary: 'text-gray-200',
+  textMuted: 'text-gray-400',
+  textDisabled: 'text-gray-500',
+  
+  // Accent colors
+  accent: 'text-blue-400',
+  accentBg: 'bg-blue-600',
+  accentHover: 'hover:bg-blue-700',
+  
+  // Status colors - HIGH CONTRAST
+  success: 'text-green-400',
+  successBg: 'bg-green-500',
+  warning: 'text-yellow-400',
+  warningBg: 'bg-yellow-500',
+  error: 'text-red-400',
+  errorBg: 'bg-red-500',
+  
+  // Interactive
+  hover: 'hover:bg-gray-800',
+  active: 'bg-blue-600',
+  
+  // Inputs
+  inputBg: 'bg-gray-800',
+  inputBorder: 'border-gray-700',
+  inputText: 'text-white',
+  inputPlaceholder: 'placeholder-gray-500',
+};
 
 export function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -85,24 +127,10 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
     { name: 'Saleem', status: 'active', color: 'bg-green-500' },
   ];
 
-  // Colors for dark mode - high contrast
-  const colors = {
-    bg: 'bg-gray-950',
-    card: 'bg-gray-900',
-    cardBorder: 'border-gray-800',
-    text: 'text-white',
-    textSecondary: 'text-gray-300',
-    textMuted: 'text-gray-400',
-    accent: 'text-blue-400',
-    accentBg: 'bg-blue-600',
-    hover: 'hover:bg-gray-800',
-    border: 'border-gray-800',
-  };
-
   return (
-    <div className={cn('min-h-screen transition-colors duration-200', FORCE_DARK ? 'bg-gray-950' : 'bg-gray-100')}>
+    <div className={cn('min-h-screen transition-colors duration-200', tokens.bgPrimary)}>
       {/* Top Header */}
-      <header className={cn('border-b sticky top-0 z-50 transition-colors duration-200', FORCE_DARK ? 'bg-gray-900 border-gray-800' : 'bg-white border-gray-200')}>
+      <header className={cn('border-b sticky top-0 z-50 transition-colors duration-200', tokens.bgSecondary, tokens.borderDefault)}>
         <div className="px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 justify-between items-center">
             <div className="flex items-center gap-4">
@@ -114,11 +142,11 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                 <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
                   <Activity className="w-5 h-5 text-white" />
                 </div>
-                <span className={cn('text-lg font-bold transition-colors', FORCE_DARK ? 'text-white group-hover:text-blue-400' : 'text-gray-900')}>Outbound System</span>
+                <span className={cn('text-lg font-bold transition-colors', tokens.textPrimary, 'group-hover:text-blue-400')}>Outbound System</span>
               </button>
-              <div className="hidden sm:flex items-center gap-2 text-sm" style={{ color: '#9ca3af' }}>
-                <span>•</span>
-                <span style={{ color: '#e5e7eb' }}>Nezar Kamel</span>
+              <div className="hidden sm:flex items-center gap-2 text-sm">
+                <span className="text-gray-600">•</span>
+                <span className={tokens.textSecondary}>Nezar Kamel</span>
               </div>
             </div>
             
@@ -126,7 +154,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
               {/* Dark Mode Toggle */}
               <button
                 onClick={toggleDarkMode}
-                className={cn('p-2 rounded-lg transition-colors', FORCE_DARK ? 'hover:bg-gray-800 text-gray-300' : 'hover:bg-gray-100 text-gray-600')}
+                className={cn('p-2 rounded-lg transition-colors', tokens.hover, tokens.textMuted)}
                 title={darkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
               >
                 {darkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
@@ -137,20 +165,20 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                 {agentStatus.slice(0, 5).map((agent) => (
                   <div 
                     key={agent.name}
-                    className={cn('flex items-center gap-1.5 px-2 py-1 rounded-full text-xs', FORCE_DARK ? 'bg-gray-800' : 'bg-gray-100')}
+                    className={cn('flex items-center gap-1.5 px-2 py-1 rounded-full text-xs', tokens.bgTertiary)}
                     title={`${agent.name}: ${agent.status}`}
                   >
                     <div className={cn('w-2 h-2 rounded-full', agent.color)} />
-                    <span style={{ color: '#d1d5db' }}>{agent.name}</span>
+                    <span className={tokens.textSecondary}>{agent.name}</span>
                   </div>
                 ))}
                 {agentStatus.length > 5 && (
-                  <span className="text-xs" style={{ color: '#6b7280' }}>+{agentStatus.length - 5}</span>
+                  <span className={cn('text-xs', tokens.textDisabled)}>+{agentStatus.length - 5}</span>
                 )}
               </div>
               
               {/* Notifications */}
-              <button className={cn('relative p-2 rounded-lg transition-colors', FORCE_DARK ? 'hover:bg-gray-800 text-gray-300' : 'hover:bg-gray-100 text-gray-500')}>
+              <button className={cn('relative p-2 rounded-lg transition-colors', tokens.hover, tokens.textMuted)}>
                 <Bell className="w-5 h-5" />
                 <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
               </button>
@@ -162,7 +190,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
       <div className="flex">
         {/* Sidebar */}
         <aside className="hidden lg:flex lg:w-64 lg:flex-col lg:fixed lg:inset-y-0">
-          <div className={cn('flex-1 flex flex-col min-h-0 border-r transition-colors duration-200', FORCE_DARK ? 'bg-gray-900 border-gray-800' : 'bg-white border-gray-200')}>
+          <div className={cn('flex-1 flex flex-col min-h-0 border-r transition-colors duration-200', tokens.bgSecondary, tokens.borderDefault)}>
             <nav className="flex-1 px-4 py-6 space-y-1">
               {navigation.map((item) => {
                 const isActive = pathname === item.href;
@@ -173,13 +201,11 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                     className={cn(
                       'w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
                       isActive
-                        ? 'bg-blue-600 text-white'
-                        : FORCE_DARK 
-                          ? 'text-gray-300 hover:bg-gray-800 hover:text-white' 
-                          : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+                        ? cn(tokens.accentBg, 'text-white')
+                        : cn(tokens.textSecondary, tokens.hover)
                     )}
                   >
-                    <item.icon className={cn('w-5 h-5', isActive ? 'text-white' : FORCE_DARK ? 'text-gray-400' : 'text-gray-400')} />
+                    <item.icon className={cn('w-5 h-5', isActive ? 'text-white' : 'text-gray-400')} />
                     {item.name}
                   </button>
                 );
@@ -187,15 +213,15 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
             </nav>
             
             {/* System Status */}
-            <div className={cn('px-4 py-4 border-t transition-colors duration-200', FORCE_DARK ? 'border-gray-800' : 'border-gray-200')}>
-              <div className="text-xs font-medium mb-3" style={{ color: '#9ca3af' }}>System Health</div>
+            <div className={cn('px-4 py-4 border-t transition-colors duration-200', tokens.borderDefault)}>
+              <div className={cn('text-xs font-medium mb-3', tokens.textMuted)}>System Health</div>
               <div className="space-y-2">
                 {['Sheets', 'Gmail', 'Telegram', 'Database'].map((system) => (
                   <div key={system} className="flex items-center justify-between text-sm">
-                    <span style={{ color: '#d1d5db' }}>{system}</span>
+                    <span className={tokens.textSecondary}>{system}</span>
                     <span className="flex items-center gap-1.5">
                       <div className="w-2 h-2 rounded-full bg-green-500" />
-                      <span style={{ color: '#22c55e' }}>Healthy</span>
+                      <span className="text-green-400">Healthy</span>
                     </span>
                   </div>
                 ))}
@@ -206,12 +232,9 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
 
         {/* Main Content */}
         <main className="flex-1 lg:pl-64">
-          <div className={cn('min-h-screen transition-colors duration-200', FORCE_DARK ? 'bg-gray-950' : 'bg-gray-100')}>
+          <div className={cn('min-h-screen transition-colors duration-200', tokens.bgPrimary)}>
             <div className="px-4 sm:px-6 lg:px-8 py-8">
-              {/* Force dark mode text colors on all content */}
-              <div className="[&_*]:!text-white [&_*]:!text-gray-100 [&_*]:!text-gray-200 [&_h1]:!text-white [&_h2]:!text-white [&_h3]:!text-white [&_p]:!text-gray-300 [&_span]:!text-gray-300 [&_a]:!text-blue-400">
-                {children}
-              </div>
+              {children}
             </div>
           </div>
         </main>
@@ -219,6 +242,9 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
     </div>
   );
 }
+
+// Export tokens for use in other components
+export const designTokens = tokens;
 
 // Export icons for use in pages
 export { 

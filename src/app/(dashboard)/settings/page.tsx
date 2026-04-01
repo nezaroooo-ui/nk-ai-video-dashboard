@@ -1,97 +1,130 @@
 'use client';
 
-import { Settings, User, Bell, Shield, Link2, Save } from 'lucide-react';
-import { DashboardLayout } from '@/components/dashboard/layout';
+import { Settings, User, Bell, Shield, Link2, Save, Check } from 'lucide-react';
+import { DashboardLayout, designTokens } from '@/components/dashboard/layout';
+import { cn } from '@/lib/utils';
+
+const t = designTokens;
+const FORCE_DARK = true;
 
 export default function SettingsPage() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
+        {/* Header */}
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Settings</h1>
-          <p className="text-gray-500 mt-1">Configure your outbound system</p>
+          <h1 className={cn("text-2xl font-bold", t.textPrimary)}>Settings</h1>
+          <p className={cn("mt-1", t.textMuted)}>Configure your outbound system</p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Settings Navigation */}
-          <div className="bg-white rounded-xl border border-gray-200 p-4">
-            <nav className="space-y-1">
-              <a href="#profile" className="flex items-center gap-3 px-3 py-2 text-sm font-medium text-blue-700 bg-blue-50 rounded-lg">
-                <User className="w-4 h-4" /> Profile
-              </a>
-              <a href="#notifications" className="flex items-center gap-3 px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 rounded-lg">
-                <Bell className="w-4 h-4" /> Notifications
-              </a>
-              <a href="#integrations" className="flex items-center gap-3 px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 rounded-lg">
-                <Link2 className="w-4 h-4" /> Integrations
-              </a>
-              <a href="#security" className="flex items-center gap-3 px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 rounded-lg">
-                <Shield className="w-4 h-4" /> Security
-              </a>
-            </nav>
+          <div className="space-y-2">
+            {[
+              { icon: User, label: 'Profile', active: true },
+              { icon: Bell, label: 'Notifications', active: false },
+              { icon: Shield, label: 'Security', active: false },
+              { icon: Link2, label: 'Integrations', active: false },
+              { icon: Settings, label: 'General', active: false },
+            ].map((item, idx) => (
+              <button
+                key={idx}
+                className={cn(
+                  "w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-colors",
+                  item.active 
+                    ? cn(t.accentBg, "text-white")
+                    : cn(t.bgTertiary, t.textSecondary, t.hover)
+                )}
+              >
+                <item.icon className="w-5 h-5" />
+                {item.label}
+              </button>
+            ))}
           </div>
 
           {/* Settings Content */}
           <div className="lg:col-span-2 space-y-6">
             {/* Profile Settings */}
-            <div className="bg-white rounded-xl border border-gray-200 p-6">
-              <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                <User className="w-4 h-4" /> Founder Profile
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
-                  <input type="text" defaultValue="Nezar Kamel" className="w-full px-3 py-2 border border-gray-300 rounded-lg" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                  <input type="email" defaultValue="nezar@nezarkamel.com" className="w-full px-3 py-2 border border-gray-300 rounded-lg" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Website</label>
-                  <input type="url" defaultValue="https://nezarkamel.com" className="w-full px-3 py-2 border border-gray-300 rounded-lg" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Service Type</label>
-                  <input type="text" defaultValue="AI Video Production" className="w-full px-3 py-2 border border-gray-300 rounded-lg" />
-                </div>
-              </div>
-            </div>
-
-            {/* Integration Status */}
-            <div className="bg-white rounded-xl border border-gray-200 p-6">
-              <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                <Link2 className="w-4 h-4" /> Integrations
-              </h3>
+            <div className={cn(t.bgCard, "rounded-xl border", t.borderDefault, "p-6")}>
+              <h2 className={cn("text-lg font-semibold mb-6", t.textPrimary)}>إعدادات الملف الشخصي</h2>
               <div className="space-y-4">
-                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-                    <span className="font-medium">Google Sheets</span>
+                <div className="flex items-center gap-4">
+                  <div className={cn(t.bgTertiary, "w-16 h-16 rounded-full flex items-center justify-center")}>
+                    <User className="w-8 h-8 text-gray-400" />
                   </div>
-                  <span className="text-sm text-green-600">Connected</span>
+                  <button className={cn("px-4 py-2 rounded-lg border", t.borderDefault, t.textSecondary, t.hover)}>
+                    تغيير الصورة
+                  </button>
                 </div>
-                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <span className="w-2 h-2 bg-gray-300 rounded-full"></span>
-                    <span className="font-medium">Gmail</span>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className={cn("block text-sm font-medium mb-2", t.textSecondary)}>الاسم</label>
+                    <input
+                      type="text"
+                      defaultValue="Nezar Kamel"
+                      className={cn("w-full px-3 py-2 rounded-lg border", t.inputBg, t.inputBorder, t.inputText)}
+                    />
                   </div>
-                  <span className="text-sm text-gray-500">Not configured</span>
+                  <div>
+                    <label className={cn("block text-sm font-medium mb-2", t.textSecondary)}>البريد</label>
+                    <input
+                      type="email"
+                      defaultValue="nezar@kamel.com"
+                      className={cn("w-full px-3 py-2 rounded-lg border", t.inputBg, t.inputBorder, t.inputText)}
+                    />
+                  </div>
                 </div>
-                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <span className="w-2 h-2 bg-gray-300 rounded-full"></span>
-                    <span className="font-medium">Telegram Bot</span>
-                  </div>
-                  <span className="text-sm text-gray-500">Not configured</span>
+
+                <div>
+                  <label className={cn("block text-sm font-medium mb-2", t.textSecondary)}>المنطقة الزمنية</label>
+                  <select className={cn("w-full px-3 py-2 rounded-lg border", t.inputBg, t.inputBorder, t.inputText)}>
+                    <option>Europe/Paris</option>
+                    <option>Asia/Riyadh</option>
+                    <option>UTC</option>
+                  </select>
                 </div>
               </div>
             </div>
 
-            <button className="flex items-center gap-2 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-              <Save className="w-4 h-4" />
-              Save Changes
-            </button>
+            {/* Notification Settings */}
+            <div className={cn(t.bgCard, "rounded-xl border", t.borderDefault, "p-6")}>
+              <h2 className={cn("text-lg font-semibold mb-6", t.textPrimary)}>إعدادات الإشعارات</h2>
+              <div className="space-y-4">
+                {[
+                  { label: 'إشعارات التليجرام', desc: 'تلقي التحديثات على التليجرام', enabled: true },
+                  { label: 'البريد الإلكتروني', desc: 'تلقي التقارير اليومية', enabled: true },
+                  { label: 'تنبيهات الفشل', desc: 'الإشعار عند فشل المهمة', enabled: true },
+                  { label: 'ملخص أسبوعي', desc: 'تلقي ملخص كل أحد', enabled: false },
+                ].map((item, idx) => (
+                  <div key={idx} className="flex items-center justify-between py-3 border-b border-gray-800 last:border-0">
+                    <div>
+                      <p className={cn("font-medium", t.textPrimary)}>{item.label}</p>
+                      <p className={cn("text-sm", t.textMuted)}>{item.desc}</p>
+                    </div>
+                    <button 
+                      className={cn(
+                        "w-12 h-6 rounded-full transition-colors relative",
+                        item.enabled ? "bg-blue-600" : "bg-gray-700"
+                      )}
+                    >
+                      <div className={cn(
+                        "absolute top-1 w-4 h-4 rounded-full bg-white transition-transform",
+                        item.enabled ? "translate-x-7" : "translate-x-1"
+                      )} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Save Button */}
+            <div className="flex justify-end">
+              <button className={cn("flex items-center gap-2 px-6 py-2 rounded-lg", t.accentBg, "text-white", t.accentHover)}>
+                <Check className="w-4 h-4" />
+                حفظ التغييرات
+              </button>
+            </div>
           </div>
         </div>
       </div>
