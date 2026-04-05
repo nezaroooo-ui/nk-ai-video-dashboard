@@ -3,7 +3,7 @@ import { google } from 'googleapis';
 
 const SCOPES = ['https://www.googleapis.com/auth/spreadsheets'];
 
-const SPREADSHEET_ID = '1IMyPQyWYFD_7a3CtF340pu0LwV-TCU5hXCa8mii7JYE';
+const SPREADSHEET_ID = '13lzfNeQpbKXOTmCnwI1I3cE4LA0tQEKg6TN6Tu4SYAQ';
 const SERVICE_ACCOUNT_EMAIL = 'nezar-leads-agent@nezar-leads.iam.gserviceaccount.com';
 
 // Fallback private key if env var is not available
@@ -109,7 +109,10 @@ class GoogleSheetsService {
 
   // Get leads with enrichment data
   async getLeads() {
-    const data = await this.getSheetData('Master Leads');
+    // Try "ليدز" tab first (Arabic), fallback to "Leads" or "Master Leads"
+    let data = await this.getSheetData('ليدز');
+    if (data.length < 2) data = await this.getSheetData('Leads');
+    if (data.length < 2) data = await this.getSheetData('Master Leads');
     if (data.length < 2) return [];
     
     const headers = data[0];
@@ -141,21 +144,101 @@ class GoogleSheetsService {
     });
   }
 
-  // Get daily stats
+  // Get daily stats - Updated for NK-AI Video Arabic sheet
   async getDailyStats() {
-    const leads = await this.getLeads();
-    const pipeline = await this.getPipeline();
+    // Get leads from ليدز tab
+    let leadsData = await this.getSheetData('ليدز');
+    if (leadsData.length < 2) leadsData = await this.getSheetData('Leads');
+    if (leadsData.length < 2) leadsData = await this.getSheetData('Master Leads');
+    
+    // Get memory/activity from ذاكرة tab
+    let memoryData = await this.getSheetData('ذاكرة');
+    if (memoryData.length < 2) memoryData = await this.getSheetData('Memory');
+    
+    // Get reports from تقارير tab
+    let reportsData = await this.getSheetData('تقارير');
+    if (reportsData.length < 2) reportsData = await this.getSheetData('Reports');
     
     const today = new Date().toISOString().split('T')[0];
     
+    // Parse leads - map Arabic column names
+    let leads: any[] = [];
+    if (leadsData.length >= 2) {
+      const headers = leadsData[0].map((h: string) => h?.toLowerCase().replace(/\s+/g, '_') || '');
+      leadsData.slice(1).forEach((row: any[]) => {
+        const lead: any = {};
+        headers.forEach((header: string, idx: number) => {
+          lead[header] = row[idx] || '';
+        });
+        // Also map common Arabic headers
+        lead.company = lead.company || lead['company_name'] || lead['company'] || lead['الشركة'] || '';
+        lead.email = lead.email || lead['البريد'] || lead['email'] || '';
+        lead.status = lead.status || lead['الحالة'] || lead['status'] || '';
+        leads.push(lead);
+      });
+    }
+    
+    // Count by status
+    const sent = leads.filter((l: any) => l.status?.includes('أُرسل') || l.status?.includes('Sent')).length;
+    const replied = leads.filter((l: any) => l.status?.includes('رد') || l.status?.includes('replied')).length;
+    const hot = leads.filter((l: any) => l.status?.includes('ساخن') || l.status?.includes('hot')).length;
+    const warm = leads.filter((l: any) => l.status?.includes('دافئ') || l.status?.includes('warm')).length;
+    
+    // Parse recent activity
+    let recentActivity: any[] = [];
+    if (memoryData.length >= 2) {
+      const memHeaders = memoryData[0].map((h: string) => h?.toLowerCase() || '');
+      recentActivity = memoryData.slice(-10).reverse().map((row: any[]) => {
+        const entry: any = {};
+        memHeaders.forEach((header: string, idx: number) => {
+          entry[header] = row[idx] || '';
+        });
+        return entry;
+      });
+    }
+    
+    // Parse reports
+    let weeklyTrend = { leadsFound: 0, emailsSent: 0, replies: 0, warmLeads: 0, hotLeads: 0 };
+    if (reportsData.length >= 2) {
+      const reportHeaders = reportsData[0];
+      reportsData.slice(-1).forEach((row: any[]) => {
+        weeklyTrend.leadsFound = parseInt(row[1]) || 0;
+        weeklyTrend.emailsSent = parseInt(row[3]) || 0;
+        weeklyTrend.replies = parseInt(row[4]) || 0;
+      });
+    }
+    
     return {
       totalLeads: leads.length,
-      newLeadsToday: leads.filter((l: any) => l.research_date?.includes(today)).length,
-      pipeline: {
-        total: pipeline.length,
-        sent: pipeline.filter((p: any) => p.current_status === 'sent').length,
-        replied: pipeline.filter((p: any) => p.current_status === 'replied').length,
-        interested: pipeline.filter((p: any) => p.current_status === 'interested').length,
+      newLeadsToday: leads.filter((l: any) => l['التاريخ']?.includes(today)).length,
+      overview: {
+        totalLeads: leads.length,
+        emailsSent: sent,
+        replies: replied,
+        hotLeads: hot,
+        warmLeads: warm
+      },
+      pipelineByStage: {
+        'جديد (New)': leads.filter((l: any) => l.status?.includes('جديد') || !l.status).length,
+        'مُثرى (Enriched)': leads.filter((l: any) => l.status?.includes('مُثرى')).length,
+        'Sent': sent,
+        'Replied': replied,
+        'Warm': warm,
+        'Hot': hot,
+        'Not Interested': leads.filter((l: any) => l.status?.includes('لا يوجد') || l.status?.includes('Not')).length
+      },
+      weeklyTrend,
+      recentActivity,
+      alerts: leads.filter((l: any) => l.status?.includes('ساخن') || l.status?.includes('Hot')),
+      stats: {
+        totalLeads: leads.length,
+        newLeadsToday: leads.filter((l: any) => l['التاريخ']?.includes(today)).length,
+        pipeline: {
+          total: leads.length,
+          sent,
+          replied,
+          interested: warm + hot
+        }
       }
     };
   }
